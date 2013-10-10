@@ -14,7 +14,7 @@ public class HomeSearchMain  {
       public static void main(String... args){
           try {
 //              Launcher.main(new String[]{"--webroot=src/main/web","--preferredClassLoader=net.sourceforge.homesearch.HomeSearchClassLoader"});
-              Launcher.main(new String[]{"--webroot=src/main/web","--ajp13Port=-1"});
+              Launcher.main(new String[]{"--webroot=embedded/src/main/webapp","--ajp13Port=-1"});
           } catch (IOException e) {
               e.printStackTrace();
           }
