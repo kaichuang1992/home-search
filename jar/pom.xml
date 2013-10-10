@@ -53,15 +53,6 @@
     <build>
         <finalName>homesearch-${version}</finalName>
 
-        <resources>
-            <resource>
-                <directory>../embedded/target</directory>
-                <includes>
-                    <include>embedded.war</include>
-                </includes>
-            </resource>
-        </resources>
-
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -112,7 +103,7 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>embedded/target/embedded.war</file>
+                                    <file>../embedded/target/embedded.war</file>
                                     <type>war</type>
                                 </artifact>
                             </artifacts>
