@@ -7,7 +7,7 @@
     <groupId>home-search</groupId>
     <artifactId>jar</artifactId>
     <version>1.0-SNAPSHOT</version>
-
+    <packaging>jar</packaging>
 
     <properties>
         <es.version>0.90.5</es.version>
@@ -53,6 +53,15 @@
     <build>
         <finalName>homesearch-${version}</finalName>
 
+        <resources>
+            <resource>
+                <directory>../embedded/target</directory>
+                <includes>
+                    <include>embedded.war</include>
+                </includes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -90,27 +99,7 @@
             </plugin>
 
 
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-artifacts</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>../embedded/target/embedded.war</file>
-                                    <type>war</type>
-                                </artifact>
-                            </artifacts>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
 
         </plugins>
     </build>
