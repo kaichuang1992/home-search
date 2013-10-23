@@ -16,8 +16,15 @@
     </bean>
 
 
-    <bean id="elasticClient" class="net.sourceforge.homesearch.dao.ElasticClient" init-method="init" destroy-method="destroy">
+    <bean id="elasticClient" class="net.sourceforge.homesearch.dao.ElasticClient" init-method="init"
+          destroy-method="destroy">
         <property name="properties" ref="appProperties"/>
+    </bean>
+
+    <bean id="watchService" class="net.sourceforge.homesearch.service.WatchService"
+          init-method="init" destroy-method="destroy">
+        <property name="watchedDir" value="content"/>
+        <property name="recursive" value="true"/>
     </bean>
 
 
