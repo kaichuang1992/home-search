@@ -34,14 +34,14 @@ public class WatchService {
     }
 
     public void init() throws IOException {
-        File f = new File(watchedDir);
-        f.mkdirs();
-        Path dir = Paths.get(watchedDir);
-        defaultDirWatcher = new DirWatcher(dir, recursive);
-        defaultDirWatcher.processEvents();
+//        File f = new File(watchedDir);
+//        f.mkdirs();
+//        Path dir = Paths.get(watchedDir);
+//        defaultDirWatcher = new DirWatcher(dir, recursive);
+//        defaultDirWatcher.start();
     }
 
-    public void destroy(){
+    public void destroy() {
 
     }
 }

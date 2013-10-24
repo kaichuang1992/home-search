@@ -44,7 +44,7 @@ import static java.nio.file.StandardWatchEventKinds.*;
  * Example to watch a directory (or tree) for changes to files.
  */
 
-public class DirWatcher {
+public class DirWatcher extends Thread{
 
     private final WatchService watcher;
     private final Map<WatchKey, Path> keys;
@@ -194,5 +194,10 @@ public class DirWatcher {
         // register directory and process its events
         Path dir = Paths.get(args[dirArg]);
         new DirWatcher(dir, recursive).processEvents();
+    }
+
+    @Override
+    public void run() {
+        processEvents();
     }
 }
