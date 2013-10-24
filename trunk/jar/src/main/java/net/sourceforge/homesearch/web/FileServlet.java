@@ -27,6 +27,10 @@ public class FileServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+
         PrintWriter out = response.getWriter();
         String content = "";
 
@@ -37,9 +41,9 @@ public class FileServlet extends HttpServlet {
         File entry = new TFile(relativeContentPath);
         if (entry.exists()) {
             DictionaryDescriptor dd = getDescriptor(getPathToDescriptor(relativeContentPath));
-            content += dd.header;
+            if (relativeContentPath.endsWith(".xhtml"))content += dd.header;
             content += readFromArchive(relativeContentPath);
-            content += dd.footer;
+            if (relativeContentPath.endsWith(".xhtml"))content += dd.footer;
         } else {
             File f = new File(webResourcePath);
             tpl = new Template(f);
