@@ -15,16 +15,16 @@
     </listener>
 
     <servlet>
-        <servlet-name>HelloServlet</servlet-name>
+        <servlet-name>FileServlet</servlet-name>
         <servlet-class>
-            net.sourceforge.homesearch.web.HelloServlet
+            net.sourceforge.homesearch.web.FileServlet
         </servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>HelloServlet</servlet-name>
-        <url-pattern>/index.xhtml</url-pattern>
+        <servlet-name>FileServlet</servlet-name>
+        <url-pattern>/</url-pattern>
     </servlet-mapping>
 
 
