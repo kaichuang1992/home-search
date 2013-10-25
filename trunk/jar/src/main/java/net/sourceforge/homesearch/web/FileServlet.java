@@ -9,6 +9,7 @@ package net.sourceforge.homesearch.web;
 
 import net.java.truevfs.access.TFile;
 import net.java.truevfs.access.TFileReader;
+import net.java.truevfs.access.TVFS;
 import net.sourceforge.homesearch.model.DictionaryDescriptor;
 import net.sourceforge.jtpl.Template;
 import org.w3c.dom.Document;
@@ -27,36 +28,38 @@ public class FileServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html; charset=UTF-8");
-
-        PrintWriter out = response.getWriter();
-        String content = "";
-
-        String webResourcePath = getServletContext().getRealPath(request.getRequestURI());
-        String relativeContentPath = request.getRequestURI();
-        relativeContentPath = relativeContentPath.startsWith("/") ? relativeContentPath.substring(1) : relativeContentPath;
-
-        File entry = new TFile(relativeContentPath);
-        if (entry.exists()) {
-            DictionaryDescriptor dd = getDescriptor(getPathToDescriptor(relativeContentPath));
-            if (relativeContentPath.endsWith(".xhtml"))content += dd.header;
-            content += readFromArchive(relativeContentPath);
-            if (relativeContentPath.endsWith(".xhtml"))content += dd.footer;
-        } else {
-            File f = new File(webResourcePath);
-            tpl = new Template(f);
-            tpl.assign("message", "Vitaly");
-            tpl.parse("main");
-            content = tpl.out();
-        }
-
-
         try {
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html; charset=UTF-8");
+
+            PrintWriter out = response.getWriter();
+            String content = "";
+
+            String webResourcePath = getServletContext().getRealPath(request.getRequestURI());
+            String relativeContentPath = request.getRequestURI();
+            relativeContentPath = relativeContentPath.startsWith("/") ? relativeContentPath.substring(1) : relativeContentPath;
+
+            File entry = new TFile(relativeContentPath);
+            if (entry.exists()) {
+                DictionaryDescriptor dd = getDescriptor(getPathToDescriptor(relativeContentPath));
+                if (relativeContentPath.endsWith(".xhtml")) content += dd.header;
+                content += readFromArchive(relativeContentPath);
+                if (relativeContentPath.endsWith(".xhtml")) content += dd.footer;
+            } else {
+                File f = new File(webResourcePath);
+                tpl = new Template(f);
+                tpl.assign("message", "Vitaly");
+                tpl.parse("main");
+                content = tpl.out();
+            }
+
+
             out.print(content);
         } catch (Exception e) {
-            e.printStackTrace(out);
+            e.printStackTrace();
+        } finally {
+//            TVFS.umount();
         }
     }
 
