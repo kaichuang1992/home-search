@@ -22,9 +22,22 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <servlet>
+        <servlet-name>GotoServlet</servlet-name>
+        <servlet-class>
+            net.sourceforge.homesearch.web.GotoServlet
+        </servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>FileServlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/content/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>GotoServlet</servlet-name>
+        <url-pattern>/content/goto</url-pattern>
     </servlet-mapping>
 
 

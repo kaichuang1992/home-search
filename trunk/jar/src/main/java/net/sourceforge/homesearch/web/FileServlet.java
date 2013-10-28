@@ -9,7 +9,6 @@ package net.sourceforge.homesearch.web;
 
 import net.java.truevfs.access.TFile;
 import net.java.truevfs.access.TFileReader;
-import net.java.truevfs.access.TVFS;
 import net.sourceforge.homesearch.model.DictionaryDescriptor;
 import net.sourceforge.jtpl.Template;
 import org.w3c.dom.Document;
@@ -22,9 +21,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class FileServlet extends HttpServlet {
     Template tpl;
+    List<String> textExtensions = Arrays.asList(new String[]{"js","css","xhtml"});
 
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws ServletException, IOException {
@@ -41,19 +43,30 @@ public class FileServlet extends HttpServlet {
             relativeContentPath = relativeContentPath.startsWith("/") ? relativeContentPath.substring(1) : relativeContentPath;
 
             if (relativeContentPath.contains(".zip/")) {
-                DictionaryDescriptor dd = getDescriptor(getPathToDescriptor(relativeContentPath));
-                if (relativeContentPath.endsWith(".xhtml")) content += dd.header;
-                content += readFromArchive(relativeContentPath);
-                if (relativeContentPath.endsWith(".xhtml")) content += dd.footer;
-            } else {
-                File f = new File(webResourcePath);
-                if (!f.exists()){
-                    f = new File(relativeContentPath);
-                }
-                tpl = new Template(f);
-                tpl.assign("message", "Vitaly");
+                tpl = new Template(new File("content/template.xhtml"));
+                String article = readFromArchive(relativeContentPath);
+                tpl.assign("CONTENT", article);
+                tpl.assign("TS", String.valueOf(System.currentTimeMillis()));
                 tpl.parse("main");
                 content = tpl.out();
+            } else {
+                File f = new File(webResourcePath);
+                if (!f.exists()) {
+                    f = new File(relativeContentPath);
+                }
+                FileInputStream fis = new FileInputStream(f);
+                byte[] bbs = new byte[fis.available()];
+                fis.read(bbs);
+                fis.close();
+
+                if (textExtensions.contains(f.getName().substring(f.getName().lastIndexOf(".")+1))) {
+                    content = new String(bbs, "utf-8");
+                } else {
+                    response.getOutputStream().write(bbs);
+                    response.getOutputStream().close();
+                    return;
+                }
+
             }
 
 
@@ -65,22 +78,7 @@ public class FileServlet extends HttpServlet {
         }
     }
 
-    private String getPathToDescriptor(String relativeContentPath) {
-        String[] parts = relativeContentPath.split("/");
-        StringBuffer sb = new StringBuffer();
-        for (String part : parts) {
-            if (part.endsWith(".zip")) {
-                sb.append(part);
-                sb.append("/");
-                sb.append("descriptor.xml");
-                break;
-            } else {
-                sb.append(part);
-                sb.append("/");
-            }
-        }
-        return sb.toString();
-    }
+
 
     private DictionaryDescriptor getDescriptor(String pathToDescriptor) throws IOException {
         DictionaryDescriptor dd = new DictionaryDescriptor();
@@ -104,7 +102,9 @@ public class FileServlet extends HttpServlet {
         }
         reader.close();
         in.close();
-        return sb.toString();
+        String art = sb.toString();
+//        art = art.replaceAll("(\"g0\">)(\\d+|¶)(.)(</span>)","$1$2$4");
+        return art;
     }
 
     private Document makeDocument(String doc) {
