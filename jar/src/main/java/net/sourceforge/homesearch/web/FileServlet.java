@@ -40,14 +40,16 @@ public class FileServlet extends HttpServlet {
             String relativeContentPath = request.getRequestURI();
             relativeContentPath = relativeContentPath.startsWith("/") ? relativeContentPath.substring(1) : relativeContentPath;
 
-            File entry = new TFile(relativeContentPath);
-            if (entry.exists()) {
+            if (relativeContentPath.contains(".zip/")) {
                 DictionaryDescriptor dd = getDescriptor(getPathToDescriptor(relativeContentPath));
                 if (relativeContentPath.endsWith(".xhtml")) content += dd.header;
                 content += readFromArchive(relativeContentPath);
                 if (relativeContentPath.endsWith(".xhtml")) content += dd.footer;
             } else {
                 File f = new File(webResourcePath);
+                if (!f.exists()){
+                    f = new File(relativeContentPath);
+                }
                 tpl = new Template(f);
                 tpl.assign("message", "Vitaly");
                 tpl.parse("main");
