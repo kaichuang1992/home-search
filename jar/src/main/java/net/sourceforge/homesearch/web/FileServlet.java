@@ -7,12 +7,8 @@ package net.sourceforge.homesearch.web;
  * Time: 14:29
  */
 
-import net.java.truevfs.access.TArchiveDetector;
-import net.java.truevfs.access.TConfig;
-import net.java.truevfs.access.TFile;
-import net.java.truevfs.access.TFileReader;
+import net.java.truevfs.access.*;
 import net.java.truevfs.comp.zipdriver.ZipDriver;
-import net.sourceforge.homesearch.model.DictionaryDescriptor;
 import net.sourceforge.jtpl.Template;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -30,6 +26,7 @@ import java.util.List;
 
 public class FileServlet extends HttpServlet {
     Template tpl;
+    public static String CURRENT_DIC = "";
     List<String> textExtensions = Arrays.asList(new String[]{"js", "css", "xhtml"});
 
     protected void doGet(HttpServletRequest request,
@@ -47,6 +44,14 @@ public class FileServlet extends HttpServlet {
             relativeContentPath = relativeContentPath.startsWith("/") ? relativeContentPath.substring(1) : relativeContentPath;
 
             if (relativeContentPath.contains(".zip/")) {
+
+                String dicName = relativeContentPath.split(".zip")[0];
+                dicName = dicName.substring(dicName.lastIndexOf("/") + 1);
+                if (!CURRENT_DIC.equals(dicName)) {
+                    TVFS.umount();
+                    FileServlet.CURRENT_DIC = dicName;
+                }
+
                 tpl = new Template(new File("content/template.xhtml"));
                 String article = readFromArchive(relativeContentPath);
                 tpl.assign("CONTENT", article);
@@ -80,18 +85,6 @@ public class FileServlet extends HttpServlet {
         } finally {
 //            TVFS.umount();
         }
-    }
-
-
-    private DictionaryDescriptor getDescriptor(String pathToDescriptor) throws IOException {
-        DictionaryDescriptor dd = new DictionaryDescriptor();
-        String descriptorContent = readFromArchive(pathToDescriptor);
-        Document descriptor = makeDocument(descriptorContent);
-        String header = descriptor.getElementsByTagName("header").item(0).getFirstChild().getNodeValue();
-        String footer = descriptor.getElementsByTagName("footer").item(0).getFirstChild().getNodeValue();
-        dd.header = header;
-        dd.footer = footer;
-        return dd;
     }
 
 

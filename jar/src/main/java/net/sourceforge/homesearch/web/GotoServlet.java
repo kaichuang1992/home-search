@@ -41,6 +41,12 @@ public class GotoServlet extends HttpServlet {
             String dicName = from.split(".zip")[0];
             dicName = dicName.substring(dicName.lastIndexOf("/") + 1);
 
+
+            if (!FileServlet.CURRENT_DIC.equals(dicName)) {
+                TVFS.umount();
+                FileServlet.CURRENT_DIC = dicName;
+            }
+
             if (!PROCESSED_DICTIONARIES.contains(dicName)) {
                 PROCESSED_DICTIONARIES.add(dicName);
                 process(dicName);
@@ -66,7 +72,12 @@ public class GotoServlet extends HttpServlet {
                     }
                 }
             } else {//search by headword
-                Map<String, Object[]> m = (Map<String, Object[]>) deserialize(DB.get(Iq80DBFactory.bytes(q)));
+                byte[] bbs = DB.get(Iq80DBFactory.bytes(q));
+
+                Map<String, Object[]> m = null;
+                if (bbs != null) {
+                    m = (Map<String, Object[]>) deserialize(bbs);
+                }
 //                if (m == null) {
 //                    m = INDEX.get(INDEX.tailMap(q).firstKey());
 //                }
