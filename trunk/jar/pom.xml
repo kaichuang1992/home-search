@@ -16,11 +16,11 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>${es.version}</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.elasticsearch</groupId>-->
+            <!--<artifactId>elasticsearch</artifactId>-->
+            <!--<version>${es.version}</version>-->
+        <!--</dependency>-->
 
         <!-- Spring 3 dependencies -->
         <dependency>
@@ -46,6 +46,13 @@
             <groupId>org.jvnet.hudson.winstone</groupId>
             <artifactId>winstone</artifactId>
             <version>${winstone.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.java.truevfs</groupId>
+            <artifactId>truevfs-driver-zip</artifactId>
+            <version>0.10.4</version>
+            <type>pom</type>
         </dependency>
 
         <dependency>

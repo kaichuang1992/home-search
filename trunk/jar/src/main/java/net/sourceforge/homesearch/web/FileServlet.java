@@ -7,8 +7,11 @@ package net.sourceforge.homesearch.web;
  * Time: 14:29
  */
 
+import net.java.truevfs.access.TArchiveDetector;
+import net.java.truevfs.access.TConfig;
 import net.java.truevfs.access.TFile;
 import net.java.truevfs.access.TFileReader;
+import net.java.truevfs.comp.zipdriver.ZipDriver;
 import net.sourceforge.homesearch.model.DictionaryDescriptor;
 import net.sourceforge.jtpl.Template;
 import org.w3c.dom.Document;
@@ -21,12 +24,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
 public class FileServlet extends HttpServlet {
     Template tpl;
-    List<String> textExtensions = Arrays.asList(new String[]{"js","css","xhtml"});
+    List<String> textExtensions = Arrays.asList(new String[]{"js", "css", "xhtml"});
 
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws ServletException, IOException {
@@ -59,7 +63,7 @@ public class FileServlet extends HttpServlet {
                 fis.read(bbs);
                 fis.close();
 
-                if (textExtensions.contains(f.getName().substring(f.getName().lastIndexOf(".")+1))) {
+                if (textExtensions.contains(f.getName().substring(f.getName().lastIndexOf(".") + 1))) {
                     content = new String(bbs, "utf-8");
                 } else {
                     response.getOutputStream().write(bbs);
@@ -79,7 +83,6 @@ public class FileServlet extends HttpServlet {
     }
 
 
-
     private DictionaryDescriptor getDescriptor(String pathToDescriptor) throws IOException {
         DictionaryDescriptor dd = new DictionaryDescriptor();
         String descriptorContent = readFromArchive(pathToDescriptor);
@@ -91,9 +94,13 @@ public class FileServlet extends HttpServlet {
         return dd;
     }
 
+
     private String readFromArchive(String path) throws IOException {
-        File entry = new TFile(path);
-        Reader reader = new TFileReader(entry);
+
+        TConfig.current().setArchiveDetector(new TArchiveDetector("zip", new ZipDriver()));
+
+        TFile entry = new TFile(path);
+        Reader reader = new TFileReader(entry, Charset.forName("utf-8"));
         BufferedReader in = new BufferedReader(reader);
         String line = null;
         StringBuilder sb = new StringBuilder();
@@ -103,7 +110,7 @@ public class FileServlet extends HttpServlet {
         reader.close();
         in.close();
         String art = sb.toString();
-//        art = art.replaceAll("(\"g0\">)(\\d+|¶)(.)(</span>)","$1$2$4");
+        art = art.replaceAll("http://goto", "../../goto");
         return art;
     }
 

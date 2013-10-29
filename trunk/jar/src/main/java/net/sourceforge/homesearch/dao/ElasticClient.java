@@ -1,8 +1,8 @@
 package net.sourceforge.homesearch.dao;
 
-import org.elasticsearch.client.Client;
-import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
+//import org.elasticsearch.client.Client;
+//import org.elasticsearch.node.Node;
+//import org.elasticsearch.node.NodeBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Properties;
@@ -14,7 +14,7 @@ import java.util.Properties;
  * Time: 18:50
  */
 public class ElasticClient {
-    private Client client;
+//    private Client client;
     private Properties properties;
 
     public Properties getProperties() {
@@ -27,11 +27,11 @@ public class ElasticClient {
     }
 
     public void init() throws Exception {
-        Node node = NodeBuilder.nodeBuilder().clusterName(properties.getProperty("elastic.clusterName")).local(true).node();
-        client = node.client();
+//        Node node = NodeBuilder.nodeBuilder().clusterName(properties.getProperty("elastic.clusterName")).local(true).node();
+//        client = node.client();
     }
 
     public void destroy() throws Exception {
-        client.close();
+//        client.close();
     }
 }
