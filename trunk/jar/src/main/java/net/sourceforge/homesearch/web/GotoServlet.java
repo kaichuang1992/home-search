@@ -3,6 +3,11 @@ package net.sourceforge.homesearch.web;
 import com.vandale.IndexSet;
 import net.java.truevfs.access.TFile;
 import net.java.truevfs.access.TFileInputStream;
+import net.java.truevfs.access.TVFS;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.DBIterator;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,7 +24,8 @@ import java.util.*;
  */
 public class GotoServlet extends HttpServlet {
     static Set<String> PROCESSED_DICTIONARIES = new HashSet<>();
-    static SortedMap<String, Map<String, Object[]>> INDEX = new TreeMap<>();
+    static DB DB;
+//    static SortedMap<String, Map<String, Object[]>> INDEX = new TreeMap<>();
 
 
     protected void doGet(HttpServletRequest request,
@@ -41,8 +47,12 @@ public class GotoServlet extends HttpServlet {
             }
 
             if (!lemId.equals("") && dicName.equals("wn")) {
-                for (String h : INDEX.keySet()) {
-                    Map<String, Object[]> m = INDEX.get(h);
+
+                DBIterator iterator = DB.iterator();
+
+                for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                    String h = Iq80DBFactory.asString(iterator.peekNext().getKey());
+                    Map<String, Object[]> m = (Map<String, Object[]>) deserialize(iterator.peekNext().getValue());
                     Object[] oos = m.get(dicName);
                     if (oos != null && oos.length == 2 && oos[1].toString().equals(lemId)) {
                         int realIndex = (Integer) oos[0];
@@ -56,10 +66,10 @@ public class GotoServlet extends HttpServlet {
                     }
                 }
             } else {//search by headword
-                Map<String, Object[]> m = INDEX.get(q);
-                if (m == null) {
-                    m = INDEX.get(INDEX.tailMap(q).firstKey());
-                }
+                Map<String, Object[]> m = (Map<String, Object[]>) deserialize(DB.get(Iq80DBFactory.bytes(q)));
+//                if (m == null) {
+//                    m = INDEX.get(INDEX.tailMap(q).firstKey());
+//                }
                 if (m != null) {
                     if (m.containsKey(dicName)) {
                         Object[] oos = m.get(dicName);
@@ -92,26 +102,47 @@ public class GotoServlet extends HttpServlet {
         ois.close();
         os.close();
 
+        if (DB == null) {
+            Options options = new Options();
+            options.createIfMissing(true);
+            DB = Iq80DBFactory.factory.open(new File("index"), options);
+        }
+
+
+        // Use the db in here....
         for (IndexSet is : l) {
             String hw = is.headword;
             if (hw.contains("<")) hw = hw.split("<")[0];
 
-            Map<String, Object[]> m = INDEX.get(hw);
+            Map<String, Object[]> m = null;
+            byte[] key = DB.get(Iq80DBFactory.bytes(hw));
+            if (key != null) {
+                m = (Map<String, Object[]>) deserialize(DB.get(Iq80DBFactory.bytes(hw)));
+            }
             if (m == null) {
                 m = new HashMap<>();
             }
             if (m.containsKey(dicName)) continue;
             m.put(dicName, new Object[]{is.realIndex, is.lemId});
-            INDEX.put(hw, m);
+
+            DB.put(Iq80DBFactory.bytes(hw), serialize((Serializable) m));
         }
-        System.out.println("New index size: "+INDEX.size() +"; bytes: "+getSize((Serializable) INDEX));
+
+
+        TVFS.umount();
+//        System.out.println("New index size: " + INDEX.size() + "; bytes: " + getSize((Serializable) INDEX));
     }
 
-    public static int getSize(Serializable ser) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(ser);
-        oos.close();
-        return baos.size();
+    public static byte[] serialize(Object obj) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream os = new ObjectOutputStream(out);
+        os.writeObject(obj);
+        return out.toByteArray();
+    }
+
+    public static Object deserialize(byte[] data) throws Exception {
+        ByteArrayInputStream in = new ByteArrayInputStream(data);
+        ObjectInputStream is = new ObjectInputStream(in);
+        return is.readObject();
     }
 }
