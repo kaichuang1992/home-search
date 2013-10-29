@@ -8,13 +8,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 /**
  * Author: Vitaly Sazanovich
@@ -23,7 +18,8 @@ import java.util.Map;
  * Time: 19:52
  */
 public class GotoServlet extends HttpServlet {
-    static Map<String, List<IndexSet>> INDEX_SETS = new HashMap<>();
+    static Set<String> PROCESSED_DICTIONARIES = new HashSet<>();
+    static SortedMap<String, Map<String, Object[]>> INDEX = new TreeMap<>();
 
 
     protected void doGet(HttpServletRequest request,
@@ -39,38 +35,83 @@ public class GotoServlet extends HttpServlet {
             String dicName = from.split(".zip")[0];
             dicName = dicName.substring(dicName.lastIndexOf("/") + 1);
 
-            List<IndexSet> l = INDEX_SETS.get(dicName);
-            if (l == null) {
-                String pathToIndex = "content/" + dicName + ".zip/" + dicName + ".ser";
-                File entry = new TFile(pathToIndex);
-                InputStream os = new TFileInputStream(entry);
-                ObjectInputStream ois = new ObjectInputStream(os);
-                l = (List<IndexSet>) ois.readObject();
-                INDEX_SETS.put(dicName, l);
-                ois.close();
-                os.close();
+            if (!PROCESSED_DICTIONARIES.contains(dicName)) {
+                PROCESSED_DICTIONARIES.add(dicName);
+                process(dicName);
             }
 
-
-            for (IndexSet is : l) {
-                String hw = is.headword;
-                if (hw.indexOf("<") != -1) {
-                    hw = hw.split("<")[0];
-                }
-                if (hw.equals(q) || (is.lemId!=null && is.lemId.equals(lemId))) {
-                    int folder = is.realIndex / 1000 + 1;
-                    String red = from.split(".zip")[0] + ".zip/" + folder + "/" + is.realIndex + ".xhtml";
-                    if (bId != null && !bId.equals("")) {
-                        red += "#" + bId;
+            if (!lemId.equals("") && dicName.equals("wn")) {
+                for (String h : INDEX.keySet()) {
+                    Map<String, Object[]> m = INDEX.get(h);
+                    Object[] oos = m.get(dicName);
+                    if (oos != null && oos.length == 2 && oos[1].toString().equals(lemId)) {
+                        int realIndex = (Integer) oos[0];
+                        int folder = realIndex / 1000 + 1;
+                        String red = from.split(".zip")[0] + ".zip/" + folder + "/" + realIndex + ".xhtml";
+                        if (bId != null && !bId.equals("")) {
+                            red += "#" + bId;
+                        }
+                        response.sendRedirect(red);
+                        return;
                     }
-                    response.sendRedirect(red);
-                    return;
+                }
+            } else {//search by headword
+                Map<String, Object[]> m = INDEX.get(q);
+                if (m == null) {
+                    m = INDEX.get(INDEX.tailMap(q).firstKey());
+                }
+                if (m != null) {
+                    if (m.containsKey(dicName)) {
+                        Object[] oos = m.get(dicName);
+                        int realIndex = (Integer) oos[0];
+                        int folder = realIndex / 1000 + 1;
+                        String red = from.split(".zip")[0] + ".zip/" + folder + "/" + realIndex + ".xhtml";
+                        if (bId != null && !bId.equals("")) {
+                            red += "#" + bId;
+                        }
+                        response.sendRedirect(red);
+                        return;
+                    }
                 }
             }
+
+
             response.sendRedirect(from);
             return;
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    static void process(String dicName) throws Exception {
+        String pathToIndex = "content/" + dicName + ".zip/" + dicName + ".ser";
+        File entry = new TFile(pathToIndex);
+        InputStream os = new TFileInputStream(entry);
+        ObjectInputStream ois = new ObjectInputStream(os);
+        List<IndexSet> l = (List<IndexSet>) ois.readObject();
+        ois.close();
+        os.close();
+
+        for (IndexSet is : l) {
+            String hw = is.headword;
+            if (hw.contains("<")) hw = hw.split("<")[0];
+
+            Map<String, Object[]> m = INDEX.get(hw);
+            if (m == null) {
+                m = new HashMap<>();
+            }
+            if (m.containsKey(dicName)) continue;
+            m.put(dicName, new Object[]{is.realIndex, is.lemId});
+            INDEX.put(hw, m);
+        }
+        System.out.println("New index size: "+INDEX.size() +"; bytes: "+getSize((Serializable) INDEX));
+    }
+
+    public static int getSize(Serializable ser) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(ser);
+        oos.close();
+        return baos.size();
     }
 }
