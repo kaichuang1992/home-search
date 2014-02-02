@@ -12,4 +12,6 @@ public class IndexSet implements Serializable {
     public String headword;
     public String lemId;
     public int realIndex;
+
+
 }
