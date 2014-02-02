@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class Preparator {
     private static String DIC_NAME = "wn";
-    private static String PATH = "C:\\projects\\elex\\tmp\\" + DIC_NAME + ".zip\\";
+    private static String PATH = "C:\\projects\\hs\\trunk\\" + DIC_NAME + ".zip\\";
     private static String HEADER = "#NAME\t\"Dikke Van Dale\"\n#INDEX_LANGUAGE\t\"Dutch\"\n#CONTENTS_LANGUAGE\t\"Dutch\"\n";
 
     private static class IndexSetComparator implements Comparator {
@@ -50,7 +50,7 @@ public class Preparator {
             String hw = is.headword;
             String art = readFromArchive(is.realIndex);
             out.write(hw);
-            out.write("\n");
+            out.write("\n\t");
             out.write(art);
             out.write("\n");
             ++counter;
