@@ -1,0 +1,1 @@
+Web application that works like a search engine for files on your local hard drive. Uses Elasticsearch for back end.
